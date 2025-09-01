@@ -84,20 +84,17 @@ const LazyImage = ({ src, alt, className, onLoad, onError }) => {
 };
 
 const UpdateAsset = ({ isOpen, onClose, asset }) => {
-  // Process asset data to handle undefined values and date conversions
   const processAssetData = (assetData) => {
     if (!assetData) return {};
 
     const processed = { ...assetData };
 
-    // Handle undefined values - convert to empty strings or null
     Object.keys(processed).forEach(key => {
       if (processed[key] === 'undefined' || processed[key] === undefined) {
         processed[key] = key.includes('Date') ? null : '';
       }
     });
 
-    // Convert date strings to Date objects
     const dateFields = ['invoiceDate', 'purchaseDate', 'endOfLife', 'capitalizationDate'];
     dateFields.forEach(field => {
       if (processed[field] && typeof processed[field] === 'string' && processed[field] !== '') {
@@ -109,12 +106,10 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       }
     });
 
-    // Handle linkedAsset - convert to string if it's an object
     if (processed.linkedAsset && typeof processed.linkedAsset === 'object') {
       processed.linkedAsset = processed.linkedAsset.id || '';
     }
 
-    // Handle fileCategories - set common category from first item
     if (processed.fileCategories && Array.isArray(processed.fileCategories) && processed.fileCategories.length > 0) {
       processed.commonFileCategory = processed.fileCategories[0];
     } else {
@@ -137,10 +132,8 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
   const [commonFileCategory, setCommonFileCategory] = useState(processedAsset.commonFileCategory || 'general');
   const [loadingImages, setLoadingImages] = useState(new Set());
 
-  // Update state when asset changes
   useEffect(() => {
     if (!asset) {
-      // Reset to empty state if no asset
       setImagePreviews([]);
       setFilePreviews([]);
       setCommonFileCategory('general');
@@ -151,28 +144,21 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
     const newProcessedAsset = processAssetData(asset);
     setCommonFileCategory(newProcessedAsset.commonFileCategory || 'general');
 
-    // Reset form with new processed data
     reset(newProcessedAsset);
 
-    // Populate image previews from existing asset data
     if (asset?.images && Array.isArray(asset.images)) {
       const imagePreviewsData = asset.images
-        .filter(image => image && typeof image === 'object') // Filter out null/undefined images
+        .filter(image => image && typeof image === 'object')
         .map((image, index) => {
-          // Handle different image URL formats with null checks
           let imageUrl = '';
 
           if (image && image.url) {
-            // If backend provides full URL
             imageUrl = image.url;
           } else if (image && image.path) {
-            // If path is provided, construct full URL
             imageUrl = image.path.startsWith('http') ? image.path : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${image.path}`;
           } else if (image && image.relativePath) {
-            // If relative path is provided
             imageUrl = image.relativePath.startsWith('http') ? image.relativePath : `${import.meta.env.VITE_API_URL || 'http://localhost:3000'}${image.relativePath}`;
           } else {
-            // Fallback placeholder for missing images
             imageUrl = `data:image/svg+xml;base64,${btoa(`
               <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="80" height="80" fill="#f3f4f6"/>
@@ -184,10 +170,10 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
           }
 
           return {
-            id: `existing-image-${index}`, // Unique ID for each existing image
-            file: null, // No actual file object for existing images
-            preview: imageUrl, // Use constructed URL as preview
-            existing: true, // Mark as existing file
+            id: `existing-image-${index}`,
+            file: null,
+            preview: imageUrl,
+            existing: true,
             name: (image && image.name) || `Image ${index + 1}`,
             path: image && image.path,
             relativePath: image && image.relativePath,
@@ -196,24 +182,22 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
         });
       setImagePreviews(imagePreviewsData);
 
-      // Initialize loading state for existing images
       const initialLoading = new Set(imagePreviewsData.map(img => img.id));
       setLoadingImages(initialLoading);
     } else {
       setImagePreviews([]);
     }
 
-    // Populate file previews from existing asset data
     if (asset?.files && Array.isArray(asset.files)) {
       const filePreviewsData = asset.files
-        .filter(file => file && typeof file === 'object') // Filter out null/undefined files
+        .filter(file => file && typeof file === 'object')
         .map((file, index) => ({
-          id: `existing-file-${index}`, // Unique ID for each existing file
-          file: null, // No actual file object for existing files
+          id: `existing-file-${index}`,
+          file: null,
           category: newProcessedAsset.commonFileCategory || 'general',
-          existing: true, // Mark as existing file
+          existing: true,
           name: (file && file.path) ? file.path.split('/').pop() : `File ${index + 1}`,
-          size: 0, // Size not available for existing files
+          size: 0,
           type: (file && file.path) ? file.path.split('.').pop() : 'unknown',
           path: file && file.path,
           relativePath: file && file.relativePath
@@ -225,7 +209,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
   }, [asset, reset]);
 
   const onDropImages = (acceptedFiles) => {
-    // Replace existing images with new ones, limit to 5
     const newImages = acceptedFiles.slice(0, 5);
 
     if (newImages.length === 0) {
@@ -233,7 +216,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       return;
     }
 
-    // Create previews for new files
     const newImagePreviews = newImages.map((file, idx) => ({
       id: `new-image-${Date.now()}-${idx}`,
       file,
@@ -242,15 +224,12 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       name: file.name
     }));
 
-    // Replace existing previews with new ones
     setImagePreviews(newImagePreviews);
 
-    // Set form value to new files only
     setValue('images', newImages);
   };
 
   const onDropFiles = (acceptedFiles) => {
-    // Replace existing files with new ones, limit to 5
     const newFiles = acceptedFiles.slice(0, 5);
 
     if (newFiles.length === 0) {
@@ -258,7 +237,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       return;
     }
 
-    // Create previews for new files
     const newFilePreviews = newFiles.map((file, idx) => ({
       id: `new-file-${Date.now()}-${idx}`,
       file,
@@ -269,10 +247,8 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       type: file.type
     }));
 
-    // Replace existing previews with new ones
     setFilePreviews(newFilePreviews);
 
-    // Set form value to new files only
     setValue('files', newFiles);
   };
 
@@ -284,10 +260,9 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
     multiple: true,
     noClick: false,
     noKeyboard: false,
-    maxSize: 5 * 1024 * 1024, // 5MB per image
+    maxSize: 5 * 1024 * 1024,
     onDropRejected: (fileRejections) => {
       console.log('Image upload rejected:', fileRejections);
-      // You could show a toast notification here
     }
   });
 
@@ -301,17 +276,15 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
     multiple: true,
     noClick: false,
     noKeyboard: false,
-    maxSize: 10 * 1024 * 1024, // 10MB per file
+    maxSize: 10 * 1024 * 1024,
     onDropRejected: (fileRejections) => {
       console.log('File upload rejected:', fileRejections);
-      // You could show a toast notification here
     }
   });
 
   const onSubmit = (data) => {
     const formData = new FormData();
 
-    // Handle regular form data
     Object.keys(data).forEach(key => {
       if (key !== 'images' && key !== 'files') {
         let value = data[key];
@@ -324,32 +297,25 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
       }
     });
 
-    // Handle images - send new images if selected, otherwise indicate to keep existing
     const newImages = imagePreviews.filter(preview => preview && preview.file instanceof File);
     if (newImages.length > 0) {
-      // New images selected - replace existing ones
       newImages.forEach((preview, index) => {
         formData.append(`images[${index}]`, preview.file);
       });
       formData.append('replaceImages', 'true');
     } else {
-      // No new images selected - keep existing ones
       formData.append('keepExistingImages', 'true');
     }
 
-    // Handle files - send new files if selected, otherwise indicate to keep existing
     const newFiles = filePreviews.filter(preview => preview && preview.file instanceof File);
     if (newFiles.length > 0) {
-      // New files selected - replace existing ones
       newFiles.forEach((preview, index) => {
         formData.append(`files[${index}]`, preview.file);
       });
-      // Send fileCategories as comma-separated string
       const categoriesString = newFiles.map(preview => preview.category || 'general').join(',');
       formData.append('fileCategories', categoriesString);
       formData.append('replaceFiles', 'true');
     } else {
-      // No new files selected - keep existing ones
       formData.append('keepExistingFiles', 'true');
     }
 
@@ -357,7 +323,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
     dispatch(fetchAssets());
     onClose();
 
-    // Clean up object URLs
     imagePreviews.forEach(preview => {
       if (preview.preview && preview.preview.startsWith('blob:')) {
         URL.revokeObjectURL(preview.preview);
@@ -414,7 +379,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title="Update Asset">
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        {/* Basic Information */}
         <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
         <Input
           label="Asset Name"
@@ -517,14 +481,12 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
           {...register('description', { maxLength: { value: 5000, message: 'Max 5000 characters' } })}
         />
 
-        {/* File Uploads */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Update Asset Images</h3>
         <div {...getImagesRootProps()} className="border-2 border-dashed border-gray-300 p-4 mb-4 cursor-pointer">
           <input {...getImagesInputProps()} />
           <p className="text-gray-600">Drag 'n' drop images here, or click to select multiple (JPG, JPEG, PNG, GIF, WebP, max 5MB each). Selecting new images will replace existing ones.</p>
         </div>
 
-        {/* Image Previews */}
         {imagePreviews.length > 0 && (
           <div className="mb-4">
             <h4 className="text-md font-semibold mb-2">Image Previews:</h4>
@@ -571,14 +533,12 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
 
         <h3 className="text-lg font-semibold mb-4">Update Files</h3>
 
-        {/* Common File Category Selection */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">File Category (applies to all files)</label>
           <select
             value={commonFileCategory}
             onChange={(e) => {
               setCommonFileCategory(e.target.value);
-              // Update existing file previews with new category
               setFilePreviews(prev => prev.map(preview => ({
                 ...preview,
                 category: e.target.value
@@ -599,7 +559,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
           <p className="text-gray-600">Drag 'n' drop files here, or click to select multiple (PDF, DOCX, DOC, max 10MB each). Selecting new files will replace existing ones.</p>
         </div>
 
-        {/* File Previews with Common Category */}
         {filePreviews.length > 0 && (
           <div className="mb-4">
             <h4 className="text-md font-semibold mb-2">File Previews (Category: {fileCategoryOptions.find(opt => opt.value === commonFileCategory)?.label}):</h4>
@@ -633,7 +592,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
           </div>
         )}
 
-        {/* Purchase Information */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Purchase Information</h3>
         <Input
           label="Vendor Name"
@@ -703,7 +661,6 @@ const UpdateAsset = ({ isOpen, onClose, asset }) => {
         />
         {errors.ownership && <p className="text-red-500 text-sm">{errors.ownership.message}</p>}
 
-        {/* Financial Information */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Financial Information</h3>
         <Input
           label="Capitalization Price"

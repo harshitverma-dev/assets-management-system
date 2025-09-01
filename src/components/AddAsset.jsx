@@ -93,12 +93,10 @@ const AddAsset = ({ isOpen, onClose }) => {
   const [commonFileCategory, setCommonFileCategory] = useState('general');
 
   const onDropImages = (acceptedFiles) => {
-    // Append new files to existing ones, but limit total to 5
     const currentFiles = imagePreviews.map(p => p.file);
     const newFiles = [...currentFiles, ...acceptedFiles].slice(0, 5);
     setValue('images', newFiles);
 
-    // Create image previews for all files
     const previews = newFiles.map(file => ({
       file,
       preview: URL.createObjectURL(file)
@@ -107,12 +105,10 @@ const AddAsset = ({ isOpen, onClose }) => {
   };
 
   const onDropFiles = (acceptedFiles) => {
-    // Append new files to existing ones, but limit total to 5
     const currentFiles = filePreviews.map(p => p.file);
     const newFiles = [...currentFiles, ...acceptedFiles].slice(0, 5);
     setValue('files', newFiles);
 
-    // Create file previews for all files with common category
     const previews = newFiles.map(file => ({
       file,
       category: commonFileCategory,
@@ -152,7 +148,6 @@ const AddAsset = ({ isOpen, onClose }) => {
       }
     });
 
-    // Send fileCategories as comma-separated string
     const categoriesString = filePreviews.map(preview => preview.category).join(',');
     formData.append('fileCategories', categoriesString);
 
@@ -202,7 +197,6 @@ const AddAsset = ({ isOpen, onClose }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add Asset">
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
-        {/* Basic Information */}
         <h3 className="text-lg font-semibold mb-4">Basic Information</h3>
         <Input
           label="Asset Name"
@@ -310,14 +304,12 @@ const AddAsset = ({ isOpen, onClose }) => {
           {...register('description', { maxLength: { value: 5000, message: 'Max 5000 characters' } })}
         />
 
-        {/* File Uploads */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Asset Images</h3>
         <div {...getImagesRootProps()} className="border-2 border-dashed border-gray-300 p-4 mb-4 cursor-pointer">
           <input {...getImagesInputProps()} />
           <p className="text-gray-600">Drag 'n' drop images here, or click to select multiple (JPG, JPEG, PNG, max 5MB each). You can select files multiple times to add up to 5 total.</p>
         </div>
 
-        {/* Image Previews */}
         {imagePreviews.length > 0 && (
           <div className="mb-4">
             <h4 className="text-md font-semibold mb-2">Image Previews:</h4>
@@ -348,14 +340,12 @@ const AddAsset = ({ isOpen, onClose }) => {
 
         <h3 className="text-lg font-semibold mb-4">Upload Files</h3>
 
-        {/* Common File Category Selection */}
         <div className="mb-4">
           <label className="block text-gray-700 text-sm font-bold mb-2">File Category (applies to all files)</label>
           <select
             value={commonFileCategory}
             onChange={(e) => {
               setCommonFileCategory(e.target.value);
-              // Update existing file previews with new category
               setFilePreviews(prev => prev.map(preview => ({
                 ...preview,
                 category: e.target.value
@@ -376,7 +366,6 @@ const AddAsset = ({ isOpen, onClose }) => {
           <p className="text-gray-600">Drag 'n' drop files here, or click to select multiple (PDF, DOCX, max 10MB each). You can select files multiple times to add up to 5 total.</p>
         </div>
 
-        {/* File Previews with Common Category */}
         {filePreviews.length > 0 && (
           <div className="mb-4">
             <h4 className="text-md font-semibold mb-2">File Previews (Category: {fileCategoryOptions.find(opt => opt.value === commonFileCategory)?.label}):</h4>
@@ -408,7 +397,6 @@ const AddAsset = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        {/* Purchase Information */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Purchase Information</h3>
         <Input
           label="Vendor Name"
@@ -478,7 +466,6 @@ const AddAsset = ({ isOpen, onClose }) => {
         />
         {errors.ownership && <p className="text-red-500 text-sm">{errors.ownership.message}</p>}
 
-        {/* Financial Information */}
         <h3 className="text-lg font-semibold mb-4 mt-6">Financial Information</h3>
         <Input
           label="Capitalization Price"
